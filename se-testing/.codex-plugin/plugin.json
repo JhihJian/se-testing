@@ -1,0 +1,32 @@
+{
+  "name": "se-testing",
+  "version": "0.1.0",
+  "description": "面向 Codex Agent 自主执行的测试工程能力包，提供意图、spec、执行与审计检查流程。",
+  "author": {
+    "name": "Local Codex User"
+  },
+  "license": "UNLICENSED",
+  "keywords": [
+    "testing",
+    "playwright",
+    "agent",
+    "audit"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "SE Testing",
+    "shortDescription": "让 Codex 按意图层生成、执行并审计 Playwright 测试。",
+    "longDescription": "SE Testing 提供 Codex skills、业务测试骨架和 Node 校验工具，用于把需求转成可审计的测试意图、生成 Playwright spec、运行失败分析，并在报告中保留 validate/check-binding 机器证据。",
+    "developerName": "Local Codex User",
+    "category": "Productivity",
+    "capabilities": [
+      "Write",
+      "Automation"
+    ],
+    "defaultPrompt": [
+      "为当前 PRD 生成测试意图并写 Playwright spec",
+      "运行测试并生成带证据的测试报告",
+      "审查当前测试意图和 spec 是否存在弱化"
+    ]
+  }
+}

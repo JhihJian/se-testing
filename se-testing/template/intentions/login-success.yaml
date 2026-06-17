@@ -1,0 +1,17 @@
+id: login-success
+version: 1
+status: active
+title: 用户用正确凭证登录成功
+business_context: |
+  注册用户在登录页输入有效的用户名与密码并提交后，
+  系统 MUST 完成认证、跳转到仪表盘，并在顶栏显示该用户的欢迎语。
+  这条意图覆盖「正常登录」这一核心业务路径，是发布前必过项。
+fixtures:
+  - users.json
+assertions:
+  - id: redirect-dashboard
+    description: 提交后浏览器 URL 跳转到 /dashboard
+  - id: greet-user
+    description: 顶栏出现欢迎语，文案包含 {{users.validUser.name}}
+  - id: session-persisted
+    description: 刷新页面后仍处于登录态，不被退回登录页

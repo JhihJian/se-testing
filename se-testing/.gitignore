@@ -1,0 +1,7 @@
+node_modules/
+playwright-report/
+test-results/
+examples/*/node_modules/
+examples/*/playwright-report/
+examples/*/test-results/
+*.log

@@ -1,0 +1,17 @@
+id: login-success
+version: 1
+status: active
+title: 用户用正确凭证登录成功
+business_context: |
+  虚构业务「星河协作台」要求已注册用户使用正确用户名与密码登录后，
+  系统必须完成认证、进入仪表盘，并在刷新后保持登录态。
+  这条意图覆盖发布前必须验证的正常登录主路径。
+fixtures:
+  - users.json
+assertions:
+  - id: redirect-dashboard
+    description: 提交正确凭证后浏览器 URL 跳转到 /dashboard
+  - id: greet-user
+    description: 顶栏欢迎语包含 {{users.validUser.name}}
+  - id: session-persisted
+    description: 刷新仪表盘后仍停留在 /dashboard，不退回登录页

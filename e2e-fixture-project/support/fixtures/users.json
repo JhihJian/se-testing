@@ -1,0 +1,7 @@
+{
+  "validUser": {
+    "name": "林晓",
+    "username": "lin",
+    "password": "<from-env:E2E_VALID_PASSWORD>"
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "validUser": {
+    "name": "Alice",
+    "username": "alice",
+    "password": "<from-env:E2E_VALID_PASSWORD>"
+  },
+  "invalidUser": {
+    "username": "alice",
+    "password": "<from-env:E2E_WRONG_PASSWORD>"
+  }
+}
