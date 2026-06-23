@@ -2,7 +2,7 @@
 
 > Codex plugin：面向 Codex Agent 自主执行的测试工程能力包。当前版本：v0.2.0。
 
-`se-testing` 通过 Codex plugin 暴露 testing skills，让 Codex 在业务项目中按 **意图生成 -> journey 分支索引 -> spec 实现 -> 执行 -> 失败分析 -> 审计报告** 的闭环工作。本插件只提供能力和模板，不持有业务测试资产。
+`se-testing` 通过 Codex plugin 暴露 testing skills，让 Codex 在业务项目中按 **意图生成 -> journey 分支索引 -> spec 实现 -> 执行 -> 失败分析 -> 审计报告** 的闭环工作；需要人工审阅时，可插入 **测试意图树可视化展示**。本插件只提供能力和模板，不持有业务测试资产。
 
 ## 插件结构
 
@@ -12,6 +12,8 @@ se-testing/
   skills/                         # Codex skills：按阶段注入流程规范
     testing-intent/SKILL.md       #   需求 -> 意图
     testing-journey/SKILL.md      #   同一路径的分支索引
+    testing-intent-visualization/SKILL.md #   测试意图树可视化展示
+    testing-intent-visualization/assets/intent-tree-example.html # 静态页面示例
     testing-spec/SKILL.md         #   意图 -> spec
     testing-run/SKILL.md          #   执行 + 失败分析
   agents/                         # subagent 角色说明，供支持子代理的编排器使用
@@ -58,6 +60,14 @@ codex plugin add se-testing@personal
 ```text
 使用 se-testing，为这份 PRD 生成测试意图、journey、Playwright spec，运行并产出 report.md
 ```
+
+需要让人审阅现有测试资产时，可直接要求生成可读的测试意图树：
+
+```text
+使用 se-testing，把当前 intentions 和 journeys 整理成测试意图树页面；已有意图结构和可能漏掉的意图识别要分开展示
+```
+
+如果业务项目没有现成 HTML 页面或前端框架，可参考 `skills/testing-intent-visualization/assets/intent-tree-example.html` 生成一个自包含静态页面。
 
 首次接入业务项目时，把插件的 `template/` 内容复制到业务项目根，形成业务侧测试资产：
 

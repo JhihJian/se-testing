@@ -34,6 +34,7 @@ cp -r <se-testing>/template/.      .            # 仅首次接入时铺骨架
    1. Task → test-author：需求 → draft 意图（testing-intent skill）
       · 同一路径多分支时维护 journey（testing-journey skill）
    2. Task → critic：意图定稿前对抗审查（节点一）
+      · 需要人工快速理解时，可用 testing-intent-visualization 生成测试意图树
    3. ⏸ 人类介入点：人确认 draft → reviewed
    4. Task → test-author：reviewed 意图 → spec（testing-spec skill）
    5. Task → test-runner：执行 + 失败分类（testing-run skill）
@@ -44,6 +45,8 @@ cp -r <se-testing>/template/.      .            # 仅首次接入时铺骨架
 ```
 
 三个人类介入点（设计第 7 节）：意图定稿确认、业务真相裁决、critic 死锁。其余全自主。
+
+`testing-intent-visualization` 只负责把现有 intentions / journeys 展示给人看；它不修改意图语义，也不把 `edge_branches` 混进已有意图树。
 
 ## opt-in 硬强制（可选，不进默认）
 

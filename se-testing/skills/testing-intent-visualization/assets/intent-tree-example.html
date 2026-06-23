@@ -1,0 +1,871 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>测试意图树示例</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f6f7f9;
+      --panel: #ffffff;
+      --line: #d9dee7;
+      --text: #20242c;
+      --muted: #626b7a;
+      --soft: #eef2f7;
+      --blue: #2457a7;
+      --blue-soft: #e8f0ff;
+      --green: #16724a;
+      --green-soft: #e8f6ef;
+      --red: #9f2e2e;
+      --red-soft: #fdecec;
+      --shadow: 0 10px 28px rgba(31, 42, 68, .08);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Microsoft YaHei", "PingFang SC", "Segoe UI", Arial, sans-serif;
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
+    header {
+      padding: 22px 28px 14px;
+      border-bottom: 1px solid var(--line);
+      background: var(--panel);
+    }
+
+    h1, h2, h3, p { margin: 0; }
+
+    h1 {
+      font-size: 22px;
+      font-weight: 650;
+      letter-spacing: 0;
+    }
+
+    h2 {
+      font-size: 15px;
+      font-weight: 650;
+      letter-spacing: 0;
+    }
+
+    h3 {
+      font-size: 14px;
+      font-weight: 650;
+      letter-spacing: 0;
+    }
+
+    .meta {
+      margin-top: 6px;
+      color: var(--muted);
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 14px;
+      align-items: center;
+    }
+
+    button {
+      min-height: 32px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--panel);
+      color: var(--text);
+      padding: 6px 10px;
+      cursor: pointer;
+      font: inherit;
+    }
+
+    button.active {
+      border-color: var(--blue);
+      background: var(--blue-soft);
+      color: var(--blue);
+      font-weight: 650;
+    }
+
+    input[type="search"] {
+      width: min(420px, 100%);
+      min-height: 32px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--panel);
+      padding: 6px 10px;
+      font: inherit;
+    }
+
+    main {
+      display: grid;
+      grid-template-columns: 280px minmax(360px, 1fr) 390px;
+      gap: 14px;
+      padding: 14px;
+      min-height: calc(100vh - 114px);
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      min-width: 0;
+      overflow: hidden;
+    }
+
+    .panel-head {
+      padding: 14px 16px 10px;
+      border-bottom: 1px solid var(--line);
+      background: #fbfcfe;
+    }
+
+    .panel-head p {
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .panel-body {
+      padding: 12px;
+      overflow: auto;
+      max-height: calc(100vh - 178px);
+    }
+
+    .domain {
+      width: 100%;
+      text-align: left;
+      display: block;
+      border-radius: 8px;
+      padding: 10px;
+      margin-bottom: 8px;
+      background: var(--panel);
+    }
+
+    .domain strong {
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .domain span {
+      display: block;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .tree {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    .tree ul {
+      list-style: none;
+      margin: 6px 0 2px 20px;
+      padding: 0 0 0 12px;
+      border-left: 1px solid var(--line);
+    }
+
+    .tree li {
+      margin: 4px 0;
+    }
+
+    .node {
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      align-items: center;
+      text-align: left;
+      padding: 7px 8px;
+      border-radius: 6px;
+      background: transparent;
+      border: 1px solid transparent;
+    }
+
+    .node:hover {
+      background: var(--soft);
+    }
+
+    .node.active {
+      border-color: var(--blue);
+      background: var(--blue-soft);
+      color: var(--text);
+    }
+
+    .node-title {
+      overflow-wrap: anywhere;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      min-height: 22px;
+      padding: 2px 7px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--muted);
+      background: #fff;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .badge.flow { color: var(--blue); background: var(--blue-soft); border-color: #bed0f4; }
+    .badge.intent, .badge.active { color: var(--green); background: var(--green-soft); border-color: #b7dfc9; }
+    .badge.high { color: var(--red); background: var(--red-soft); border-color: #efc0c0; }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .stat {
+      padding: 9px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fbfcfe;
+    }
+
+    .stat strong {
+      display: block;
+      font-size: 18px;
+      line-height: 1.2;
+    }
+
+    .stat span {
+      display: block;
+      margin-top: 2px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .section {
+      padding: 12px 0;
+      border-top: 1px solid var(--line);
+    }
+
+    .section:first-child {
+      border-top: 0;
+      padding-top: 0;
+    }
+
+    .section h3 {
+      margin-bottom: 8px;
+    }
+
+    .section p,
+    .section li {
+      color: var(--muted);
+    }
+
+    ol, ul {
+      margin: 0;
+      padding-left: 20px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    th, td {
+      border: 1px solid var(--line);
+      padding: 7px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: #f1f4f8;
+      color: var(--muted);
+      font-weight: 650;
+    }
+
+    .miss-panel {
+      margin-top: 14px;
+      border-top: 1px solid var(--line);
+      padding-top: 12px;
+    }
+
+    .miss-item {
+      border: 1px solid #efc0c0;
+      border-radius: 8px;
+      padding: 10px;
+      background: var(--red-soft);
+      margin-bottom: 8px;
+    }
+
+    .miss-item strong {
+      color: var(--red);
+    }
+
+    .empty {
+      padding: 18px;
+      text-align: center;
+      color: var(--muted);
+      border: 1px dashed var(--line);
+      border-radius: 8px;
+      background: #fbfcfe;
+    }
+
+    .mono {
+      font-family: Consolas, "Liberation Mono", monospace;
+      font-size: 12px;
+    }
+
+    @media (max-width: 1100px) {
+      main {
+        grid-template-columns: 240px minmax(0, 1fr);
+      }
+
+      .detail-panel {
+        grid-column: 1 / -1;
+      }
+    }
+
+    @media (max-width: 760px) {
+      main {
+        grid-template-columns: 1fr;
+      }
+
+      header {
+        padding: 18px 16px 12px;
+      }
+
+      .panel-body {
+        max-height: none;
+      }
+
+      .stats {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>已有测试意图树</h1>
+    <p class="meta">先看已有结构；可能漏掉的意图单独放在右侧，不混进流程主干。</p>
+    <div class="toolbar">
+      <button id="flow-mode" class="active" type="button">只看流程</button>
+      <button id="coverage-mode" type="button">展开到覆盖点</button>
+      <input id="search" type="search" placeholder="在当前业务域内搜索流程、覆盖点、测试说明">
+    </div>
+  </header>
+
+  <main>
+    <section class="panel">
+      <div class="panel-head">
+        <h2>业务域</h2>
+        <p>先选一个业务域，再看它下面的流程。</p>
+      </div>
+      <div id="domains" class="panel-body"></div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2 id="tree-title">流程主干</h2>
+        <p>每条流程下有覆盖点；覆盖点再连接到相关测试说明。</p>
+      </div>
+      <div class="panel-body">
+        <ul id="tree" class="tree"></ul>
+      </div>
+    </section>
+
+    <section class="panel detail-panel">
+      <div class="panel-head">
+        <h2>节点详情</h2>
+        <p>点击左侧节点后查看上下文、检查点和绑定文件。</p>
+      </div>
+      <div id="detail" class="panel-body"></div>
+    </section>
+  </main>
+
+  <script>
+    const data = {
+      domains: [
+        { id: "ticket", name: "工单", p0: 2 },
+        { id: "identity", name: "登录/用户", p0: 1 }
+      ],
+      intentions: [
+        {
+          id: "ticket-submit-success",
+          domain: "ticket",
+          title: "用户提交工单后进入待审核状态",
+          priority: "P0",
+          status: "active",
+          business_context: "普通用户提交完整工单后，系统必须创建工单并进入待审核状态，审核人才能继续处理。",
+          assertions: [
+            { id: "ticket-created", description: "提交后生成唯一工单编号" },
+            { id: "status-pending-review", description: "新工单状态为待审核" }
+          ],
+          edge_cases: [
+            { id: "missing-title", description: "标题为空时拒绝提交并提示必填" }
+          ],
+          specBindings: [
+            { specPath: "specs/ticket-submit.spec.ts", version: 1 }
+          ]
+        },
+        {
+          id: "ticket-review-approve",
+          domain: "ticket",
+          title: "审核通过后工单进入处理中",
+          priority: "P0",
+          status: "active",
+          business_context: "审核人确认工单信息有效后，工单应进入处理中并记录审核操作。",
+          assertions: [
+            { id: "status-processing", description: "审核通过后状态变为处理中" },
+            { id: "review-audit", description: "系统记录审核人、审核时间和审核结果" }
+          ],
+          edge_cases: [],
+          specBindings: [
+            { specPath: "specs/ticket-review.spec.ts", version: 1 }
+          ]
+        },
+        {
+          id: "ticket-export-permission",
+          domain: "ticket",
+          title: "只有管理员可以导出工单列表",
+          priority: "P1",
+          status: "active",
+          business_context: "工单导出包含批量业务数据，需要受权限控制。",
+          assertions: [
+            { id: "admin-export", description: "管理员导出工单列表成功" },
+            { id: "normal-user-forbidden", description: "普通用户导出请求被拒绝" }
+          ],
+          edge_cases: [
+            { id: "empty-result", description: "筛选结果为空时导出空表头文件" }
+          ],
+          specBindings: [
+            { specPath: "specs/ticket-export.spec.ts", version: 1 }
+          ]
+        },
+        {
+          id: "login-success",
+          domain: "identity",
+          title: "用户用正确凭证登录成功",
+          priority: "P0",
+          status: "active",
+          business_context: "已注册用户输入正确账号和密码后，应进入系统首页。",
+          assertions: [
+            { id: "redirect-home", description: "登录后跳转到首页" },
+            { id: "show-current-user", description: "顶部显示当前用户姓名" }
+          ],
+          edge_cases: [
+            { id: "repeat-login", description: "已登录用户再次访问登录页时跳转首页" }
+          ],
+          specBindings: [
+            { specPath: "specs/login.spec.ts", version: 1 }
+          ]
+        }
+      ],
+      journeys: [
+        {
+          id: "ticket-lifecycle",
+          domain: "ticket",
+          title: "工单从提交到审核",
+          status: "active",
+          business_context: "围绕同一个工单，从用户提交到审核人处理的主流程。",
+          branches: [
+            {
+              id: "submit-valid-ticket",
+              condition: "用户填写完整工单并提交",
+              result: "系统创建工单，状态为待审核",
+              intent: "ticket-submit-success",
+              priority: "P0"
+            },
+            {
+              id: "review-approve-ticket",
+              condition: "审核人通过待审核工单",
+              result: "工单进入处理中并留下审核记录",
+              intent: "ticket-review-approve",
+              priority: "P0"
+            }
+          ],
+          edge_branches: [
+            {
+              condition: "审核人驳回待审核工单",
+              result: "工单应回到用户修改状态，并记录驳回原因",
+              reason: "当前没有对应测试说明"
+            }
+          ]
+        },
+        {
+          id: "identity-login",
+          domain: "identity",
+          title: "用户登录",
+          status: "active",
+          business_context: "用户从登录页进入系统的主路径。",
+          branches: [
+            {
+              id: "login-with-valid-password",
+              condition: "用户输入正确账号和密码",
+              result: "登录成功并进入首页",
+              intent: "login-success",
+              priority: "P0"
+            }
+          ],
+          edge_branches: [
+            {
+              condition: "用户输入错误密码",
+              result: "登录失败并显示明确错误",
+              reason: "当前示例只展示缺口，不放入已有树"
+            }
+          ]
+        }
+      ]
+    };
+
+    const $ = (selector) => document.querySelector(selector);
+    const escapeHtml = (value) => String(value ?? "").replace(/[&<>"']/g, (char) => ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;"
+    }[char]));
+
+    const intentById = new Map(data.intentions.map((intent) => [intent.id, intent]));
+    let selectedDomain = data.domains[0].id;
+    let selectedNode = null;
+    let depthMode = "flow";
+
+    function domainJourneys(domainId) {
+      return data.journeys.filter((journey) => journey.domain === domainId);
+    }
+
+    function domainIntentions(domainId) {
+      return data.intentions.filter((intent) => intent.domain === domainId);
+    }
+
+    function independentIntentions(domainId) {
+      const referenced = new Set(domainJourneys(domainId).flatMap((journey) =>
+        journey.branches.map((branch) => branch.intent)
+      ));
+      return domainIntentions(domainId).filter((intent) => !referenced.has(intent.id));
+    }
+
+    function renderDomains() {
+      $("#domains").innerHTML = data.domains.map((domain) => {
+        const flows = domainJourneys(domain.id).length;
+        const intents = domainIntentions(domain.id).length;
+        const active = domain.id === selectedDomain ? " active" : "";
+        return `
+          <button class="domain${active}" type="button" data-domain="${escapeHtml(domain.id)}">
+            <strong>${escapeHtml(domain.name)}</strong>
+            <span>${flows} 条流程 · ${intents} 条测试说明 · P0 ${domain.p0}</span>
+          </button>
+        `;
+      }).join("");
+
+      document.querySelectorAll("[data-domain]").forEach((button) => {
+        button.addEventListener("click", () => {
+          selectedDomain = button.dataset.domain;
+          selectedNode = { type: "domain", id: selectedDomain };
+          render();
+        });
+      });
+    }
+
+    function buildTree() {
+      const flows = domainJourneys(selectedDomain).map((journey) => ({
+        type: "journey",
+        id: `journey:${journey.id}`,
+        title: journey.title,
+        badge: "流程",
+        badgeClass: "flow",
+        journey,
+        search: [
+          journey.title,
+          journey.business_context,
+          ...journey.branches.flatMap((branch) => [branch.condition, branch.result, branch.intent])
+        ].join(" "),
+        children: depthMode === "coverage" ? [
+          {
+            type: "group",
+            id: `journey:${journey.id}:covered`,
+            title: "已覆盖点",
+            badge: `${journey.branches.length} 个`,
+            badgeClass: "",
+            search: journey.branches.map((branch) => `${branch.condition} ${branch.result}`).join(" "),
+            children: journey.branches.map((branch) => {
+              const intent = intentById.get(branch.intent);
+              return {
+                type: "branch",
+                id: `branch:${journey.id}:${branch.id}`,
+                title: branch.condition,
+                badge: branch.priority || intent?.priority || "覆盖点",
+                badgeClass: branch.priority === "P0" || intent?.priority === "P0" ? "high" : "",
+                journey,
+                branch,
+                intent,
+                search: [branch.condition, branch.result, intent?.title].join(" "),
+                children: intent ? [intentNode(intent)] : []
+              };
+            })
+          },
+          {
+            type: "group",
+            id: `journey:${journey.id}:intents`,
+            title: "相关测试说明",
+            badge: `${new Set(journey.branches.map((branch) => branch.intent)).size} 条`,
+            badgeClass: "intent",
+            search: journey.branches.map((branch) => intentById.get(branch.intent)?.title || branch.intent).join(" "),
+            children: Array.from(new Set(journey.branches.map((branch) => branch.intent)))
+              .map((id) => intentById.get(id))
+              .filter(Boolean)
+              .map(intentNode)
+          }
+        ] : []
+      }));
+
+      const independent = independentIntentions(selectedDomain);
+      if (independent.length) {
+        flows.push({
+          type: "group",
+          id: `domain:${selectedDomain}:independent`,
+          title: "独立测试说明",
+          badge: `${independent.length} 条`,
+          badgeClass: "intent",
+          search: independent.map((intent) => intent.title).join(" "),
+          children: depthMode === "coverage" ? independent.map(intentNode) : []
+        });
+      }
+      return flows;
+    }
+
+    function intentNode(intent) {
+      return {
+        type: "intent",
+        id: `intent:${intent.id}`,
+        title: intent.title,
+        badge: intent.priority || "说明",
+        badgeClass: intent.priority === "P0" ? "high" : "intent",
+        intent,
+        search: [intent.id, intent.title, intent.business_context].join(" "),
+        children: []
+      };
+    }
+
+    function renderTree() {
+      const keyword = $("#search").value.trim().toLowerCase();
+      const nodes = buildTree().filter((node) => matches(node, keyword));
+      $("#tree-title").textContent = `${domainName(selectedDomain)} · 流程主干`;
+      $("#tree").innerHTML = nodes.length ? renderNodeList(nodes, keyword) : `<li class="empty">当前业务域没有匹配结果。</li>`;
+
+      document.querySelectorAll("[data-node]").forEach((button) => {
+        button.addEventListener("click", () => {
+          selectedNode = findNode(button.dataset.node, buildTree());
+          renderTree();
+          renderDetail();
+        });
+      });
+    }
+
+    function matches(node, keyword) {
+      if (!keyword) return true;
+      const own = `${node.title} ${node.search || ""}`.toLowerCase().includes(keyword);
+      return own || (node.children || []).some((child) => matches(child, keyword));
+    }
+
+    function renderNodeList(nodes, keyword) {
+      return nodes.map((node) => {
+        const children = (node.children || []).filter((child) => matches(child, keyword));
+        const active = selectedNode?.id === node.id ? " active" : "";
+        const badgeClass = node.badgeClass ? ` ${node.badgeClass}` : "";
+        return `
+          <li>
+            <button class="node${active}" type="button" data-node="${escapeHtml(node.id)}">
+              <span class="node-title">${escapeHtml(node.title)}</span>
+              <span class="badge${badgeClass}">${escapeHtml(node.badge)}</span>
+            </button>
+            ${children.length ? `<ul>${renderNodeList(children, keyword)}</ul>` : ""}
+          </li>
+        `;
+      }).join("");
+    }
+
+    function findNode(id, nodes) {
+      for (const node of nodes) {
+        if (node.id === id) return node;
+        const found = findNode(id, node.children || []);
+        if (found) return found;
+      }
+      return { type: "domain", id: selectedDomain };
+    }
+
+    function renderDetail() {
+      const node = selectedNode || { type: "domain", id: selectedDomain };
+      if (node.type === "journey") return renderJourneyDetail(node.journey);
+      if (node.type === "branch") return renderBranchDetail(node);
+      if (node.type === "intent") return renderIntentDetail(node.intent);
+      if (node.type === "group") return renderGroupDetail(node);
+      return renderDomainDetail(selectedDomain);
+    }
+
+    function renderDomainDetail(domainId) {
+      const flows = domainJourneys(domainId);
+      const intents = domainIntentions(domainId);
+      const independent = independentIntentions(domainId);
+      const missing = flows.flatMap((flow) => (flow.edge_branches || []).map((item) => ({ flow, item })));
+      $("#detail").innerHTML = `
+        <div class="stats">
+          ${stat("流程", flows.length)}
+          ${stat("测试说明", intents.length)}
+          ${stat("独立说明", independent.length)}
+        </div>
+        ${section("阅读建议", "<p>先看中间的流程主干。每条流程可以展开为已覆盖点和相关测试说明。</p>")}
+        ${section("流程列表", list(flows.map((flow) => flow.title)))}
+        ${section("独立测试说明", list(independent.map((intent) => intent.title)))}
+        ${renderMissingPanel(missing)}
+      `;
+    }
+
+    function renderJourneyDetail(journey) {
+      const related = Array.from(new Set(journey.branches.map((branch) => branch.intent)))
+        .map((id) => intentById.get(id)?.title || id);
+      $("#detail").innerHTML = `
+        <div class="stats">
+          ${stat("覆盖点", journey.branches.length)}
+          ${stat("相关说明", related.length)}
+          ${stat("状态", journey.status || "-")}
+        </div>
+        ${section(journey.title, `<p>${escapeHtml(journey.business_context || "没有补充说明。")}</p>`)}
+        ${section("覆盖点", branchTable(journey.branches))}
+        ${section("相关测试说明", list(related))}
+        ${renderMissingPanel((journey.edge_branches || []).map((item) => ({ flow: journey, item })))}
+      `;
+    }
+
+    function renderBranchDetail(node) {
+      const intent = node.intent;
+      $("#detail").innerHTML = `
+        <div class="stats">
+          ${stat("重要级别", node.branch.priority || intent?.priority || "-")}
+          ${stat("相关说明", intent ? 1 : 0)}
+          ${stat("所在流程", node.journey.title)}
+        </div>
+        ${section("什么时候发生", `<p>${escapeHtml(node.branch.condition)}</p>`)}
+        ${section("应该发生什么", `<p>${escapeHtml(node.branch.result)}</p>`)}
+        ${section("相关测试说明", intent ? intentSummary(intent) : "<p>没有找到相关测试说明。</p>")}
+      `;
+    }
+
+    function renderIntentDetail(intent) {
+      $("#detail").innerHTML = `
+        <div class="stats">
+          ${stat("优先级", intent.priority || "-")}
+          ${stat("检查点", intent.assertions.length)}
+          ${stat("边界情况", intent.edge_cases.length)}
+        </div>
+        ${section(intent.title, `<p>${escapeHtml(intent.business_context || "没有补充说明。")}</p>`)}
+        ${section("检查点", ordered(intent.assertions.map((item) => `<strong class="mono">${escapeHtml(item.id)}</strong><br>${escapeHtml(item.description)}`)))}
+        ${section("边界情况", ordered(intent.edge_cases.map((item) => `<strong class="mono">${escapeHtml(item.id)}</strong><br>${escapeHtml(item.description)}`)))}
+        ${section("绑定的测试文件", list(intent.specBindings.map((item) => `${item.specPath} · v${item.version}`)))}
+      `;
+    }
+
+    function renderGroupDetail(node) {
+      $("#detail").innerHTML = `
+        ${section(node.title, "<p>这是流程主干里的分组，用来减少一次性展开的信息量。</p>")}
+        ${section("包含内容", list((node.children || []).map((child) => child.title)))}
+      `;
+    }
+
+    function renderMissingPanel(items) {
+      if (!items.length) return "";
+      return `
+        <div class="miss-panel">
+          <h3>可能漏掉的意图</h3>
+          <p class="meta">这里只展示待判断内容，不属于已有测试意图树。</p>
+          ${items.map(({ flow, item }) => `
+            <div class="miss-item">
+              <strong>${escapeHtml(flow.title)}</strong>
+              <p>${escapeHtml(item.condition)} -> ${escapeHtml(item.result)}</p>
+              <p>${escapeHtml(item.reason || "需要补充判断。")}</p>
+            </div>
+          `).join("")}
+        </div>
+      `;
+    }
+
+    function section(title, content) {
+      return `<section class="section"><h3>${escapeHtml(title)}</h3>${content}</section>`;
+    }
+
+    function stat(label, value) {
+      return `<div class="stat"><strong>${escapeHtml(value)}</strong><span>${escapeHtml(label)}</span></div>`;
+    }
+
+    function list(items) {
+      return items.length ? `<ul>${items.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>` : `<p>无</p>`;
+    }
+
+    function ordered(items) {
+      return items.length ? `<ol>${items.map((item) => `<li>${item}</li>`).join("")}</ol>` : `<p>无</p>`;
+    }
+
+    function branchTable(branches) {
+      return `
+        <table>
+          <thead><tr><th>什么时候发生</th><th>应该发生什么</th><th>相关测试说明</th></tr></thead>
+          <tbody>
+            ${branches.map((branch) => `
+              <tr>
+                <td>${escapeHtml(branch.condition)}</td>
+                <td>${escapeHtml(branch.result)}</td>
+                <td><span class="mono">${escapeHtml(branch.intent)}</span></td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      `;
+    }
+
+    function intentSummary(intent) {
+      return `
+        <p><strong>${escapeHtml(intent.title)}</strong></p>
+        <p class="mono">${escapeHtml(intent.id)}</p>
+        <p><span class="badge ${intent.priority === "P0" ? "high" : "intent"}">${escapeHtml(intent.priority)}</span>
+        <span class="badge active">${escapeHtml(intent.status)}</span></p>
+      `;
+    }
+
+    function domainName(domainId) {
+      return data.domains.find((domain) => domain.id === domainId)?.name || domainId;
+    }
+
+    function render() {
+      renderDomains();
+      renderTree();
+      renderDetail();
+    }
+
+    $("#flow-mode").addEventListener("click", () => {
+      depthMode = "flow";
+      $("#flow-mode").classList.add("active");
+      $("#coverage-mode").classList.remove("active");
+      selectedNode = { type: "domain", id: selectedDomain };
+      render();
+    });
+
+    $("#coverage-mode").addEventListener("click", () => {
+      depthMode = "coverage";
+      $("#coverage-mode").classList.add("active");
+      $("#flow-mode").classList.remove("active");
+      renderTree();
+    });
+
+    $("#search").addEventListener("input", renderTree);
+
+    selectedNode = { type: "domain", id: selectedDomain };
+    render();
+  </script>
+</body>
+</html>
