@@ -89,7 +89,7 @@ function loadPlaywrightSummary() {
   return found;
 }
 
-function writeReport({ port, e2e, validate, binding }) {
+function writeReport({ port, e2e, validate, intentions, journeys, binding }) {
   const summary = loadPlaywrightSummary();
   const passed = summary.every((item) => item.status === "passed") && summary.length > 0;
   const assertionResult = passed ? "通过" : "失败";
@@ -122,7 +122,27 @@ ${JSON.stringify(summary, null, 2)}
 ${validate.stdout.trim()}
 \`\`\`
 
-## 3. check-binding 输出
+## 3. check-intentions 输出
+
+命令：\`${intentions.command}\`
+退出码：\`${intentions.code}\`
+
+\`\`\`json
+${intentions.stdout.trim()}
+\`\`\`
+
+## 4. check-journeys 输出
+
+命令：\`${journeys.command}\`
+退出码：\`${journeys.code}\`
+
+\`\`\`json
+${journeys.stdout.trim()}
+\`\`\`
+
+journey warning 回应：本示例显式记录失败登录分支为 dogfood 范围外的已知缺口。
+
+## 5. check-binding 输出
 
 命令：\`${binding.command}\`
 退出码：\`${binding.code}\`
@@ -131,13 +151,13 @@ ${validate.stdout.trim()}
 ${binding.stdout.trim()}
 \`\`\`
 
-## 4. Playwright 原始报告与 trace
+## 6. Playwright 原始报告与 trace
 
 - HTML 报告：\`playwright-report/html/index.html\`
 - JSON 结果：\`playwright-report/results.json\`
 - 失败用例 trace：${passed ? "本次无失败" : "见 `test-results/`"}
 
-## 5. 执行命令记录
+## 7. 执行命令记录
 
 \`\`\`text
 ${e2e.command}
@@ -145,6 +165,12 @@ ${e2e.command}
 
 ${validate.command}
 退出码：${validate.code}
+
+${intentions.command}
+退出码：${intentions.code}
+
+${journeys.command}
+退出码：${journeys.code}
 
 ${binding.command}
 退出码：${binding.code}
@@ -177,15 +203,27 @@ async function main() {
   });
   printStep("validate-intention", validate);
 
+  const intentions = run(process.execPath, [path.join(pluginRoot, "tools", "check-intentions.mjs"), "."], {
+    cwd: fixtureDir,
+    env,
+  });
+  printStep("check-intentions", intentions);
+
+  const journeys = run(process.execPath, [path.join(pluginRoot, "tools", "check-journeys.mjs"), "."], {
+    cwd: fixtureDir,
+    env,
+  });
+  printStep("check-journeys", journeys);
+
   const binding = run(process.execPath, [path.join(pluginRoot, "tools", "check-binding.mjs"), "."], {
     cwd: fixtureDir,
     env,
   });
   printStep("check-binding", binding);
 
-  writeReport({ port, e2e, validate, binding });
+  writeReport({ port, e2e, validate, intentions, journeys, binding });
 
-  if (e2e.code !== 0 || validate.code !== 0 || binding.code !== 0) {
+  if (e2e.code !== 0 || validate.code !== 0 || intentions.code !== 0 || journeys.code !== 0 || binding.code !== 0) {
     process.exit(1);
   }
 }

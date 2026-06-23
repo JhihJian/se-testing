@@ -1,9 +1,8 @@
 # se-testing
 
-> Codex plugin：面向 Codex Agent 自主执行的测试工程能力包。v0 (MVP)。
-> 设计蓝图见 [../STANDALONE_DESIGN.md](../STANDALONE_DESIGN.md)。
+> Codex plugin：面向 Codex Agent 自主执行的测试工程能力包。当前版本：v0.2.0。
 
-`se-testing` 通过 Codex plugin 暴露 testing skills，让 Codex 在业务项目中按 **意图生成 → spec 实现 → 执行 → 失败分析 → 审计报告** 的闭环工作。本插件只提供能力和模板，不持有业务测试资产。
+`se-testing` 通过 Codex plugin 暴露 testing skills，让 Codex 在业务项目中按 **意图生成 -> journey 分支索引 -> spec 实现 -> 执行 -> 失败分析 -> 审计报告** 的闭环工作。本插件只提供能力和模板，不持有业务测试资产。
 
 ## 插件结构
 
@@ -11,15 +10,18 @@
 se-testing/
   .codex-plugin/plugin.json       # Codex plugin manifest
   skills/                         # Codex skills：按阶段注入流程规范
-    testing-intent/SKILL.md       #   需求 → 意图
-    testing-spec/SKILL.md         #   意图 → spec
+    testing-intent/SKILL.md       #   需求 -> 意图
+    testing-journey/SKILL.md      #   同一路径的分支索引
+    testing-spec/SKILL.md         #   意图 -> spec
     testing-run/SKILL.md          #   执行 + 失败分析
   agents/                         # subagent 角色说明，供支持子代理的编排器使用
     test-author.md  test-runner.md  critic.md
   tools/                          # 插件内核：可独立运行的 Node 校验脚本
-    validate-intention.mjs        #   意图 schema / fixture / 占位符 / 硬编码提示
+    validate-intention.mjs        #   基础 schema / fixture / 占位符 / 硬编码提示
+    check-intentions.mjs          #   严格意图质量检查
+    check-journeys.mjs            #   journey schema / intent 引用 / warning
     check-binding.mjs             #   version / assertion 覆盖 / skip 扫描 / 空扫防护
-    run-dogfood.mjs               #   正式 dogfood：fixture e2e + 两个审计脚本
+    run-dogfood.mjs               #   正式 dogfood：fixture e2e + 四个审计脚本
   template/                       # 复制到业务项目的测试资产骨架
     intentions/ specs/ support/ playwright.config.ts report.md
   examples/login-fixture/         # dogfood 业务项目：真实 Web 登录页 + Playwright spec
@@ -54,7 +56,7 @@ codex plugin add se-testing@personal
 打开业务项目的新 Codex 线程后，直接请求 Codex 使用本插件的测试能力，例如：
 
 ```text
-使用 se-testing，为这份 PRD 生成测试意图、Playwright spec，运行并产出 report.md
+使用 se-testing，为这份 PRD 生成测试意图、journey、Playwright spec，运行并产出 report.md
 ```
 
 首次接入业务项目时，把插件的 `template/` 内容复制到业务项目根，形成业务侧测试资产：
@@ -65,7 +67,8 @@ Copy-Item -Recurse <se-testing-plugin-root>\template\* <business-project-root>\
 
 之后业务项目中维护的是：
 
-- `intentions/*.yaml`：测试意图，回答“测什么”。
+- `intentions/*.yaml` 或 `intentions/<domain>/*.yaml`：测试意图，回答“测什么”。
+- `intentions/journeys/*.yaml`：同一路径下的分支索引和已知缺口。
 - `specs/*.spec.ts`：Playwright 测试，回答“怎么测”。
 - `support/fixtures/*.json`：业务测试数据。
 - `support/pages/*.page.ts`：Page Object。
@@ -77,7 +80,18 @@ Copy-Item -Recurse <se-testing-plugin-root>\template\* <business-project-root>\
 
 ```powershell
 node <se-testing-plugin-root>\tools\validate-intention.mjs .
+node <se-testing-plugin-root>\tools\check-intentions.mjs .
+node <se-testing-plugin-root>\tools\check-journeys.mjs .
 node <se-testing-plugin-root>\tools\check-binding.mjs .
+```
+
+也可通过 package bin 暴露命令：
+
+```powershell
+se-validate-intention .
+se-check-intentions .
+se-check-journeys .
+se-check-binding .
 ```
 
 在插件根自检：
@@ -88,28 +102,32 @@ npm run validate
 npm run dogfood
 ```
 
-两脚本输出结构化 JSON；有错误时退出码为 1。`validate-intention` 会拒绝空扫，缺少 `intentions/` 或没有任何 `*.yaml` 会失败。`check-binding` 会在 `projectErrors` 中报告缺目录、空意图集或 YAML 解析失败，避免路径传错却误以为通过。
+四个脚本输出结构化 JSON；有阻断错误时退出码为 1。`validate-intention` 拒绝空扫并检查 fixture 占位符；`check-intentions` 检查严格字段、kebab-case 与空泛描述；`check-journeys` 校验 journey 引用并输出 warning；`check-binding` 在 `projectErrors`、`driftErrors`、`assertionCoverage`、`skipFindings` 中报告执行层绑定问题。
 
-`npm run dogfood` 会把本插件当作接入方实际使用：进入 `examples/login-fixture/`，必要时安装 fixture 依赖，自动选择可用端口，运行真实 Playwright Chromium 登录测试，再运行 `validate-intention` 与 `check-binding`，最后刷新 `examples/login-fixture/report.md`。这条命令用于证明模板、执行层和审计脚本组合起来能服务一个真实业务形态。
+`npm run dogfood` 会把本插件当作接入方实际使用：进入 `examples/login-fixture/`，必要时安装 fixture 依赖，自动选择可用端口，运行真实 Playwright Chromium 登录测试，再运行四个审计脚本，最后刷新 `examples/login-fixture/report.md`。这条命令用于证明模板、执行层和审计脚本组合起来能服务一个真实业务形态。
 
-## 意图与 spec 约束
+## 意图、journey 与 spec 约束
 
 意图 YAML 使用 `js-yaml` 解析，支持标准 YAML 写法；读取 YAML/spec/fixture 时兼容 UTF-8 BOM。`fixtures` 必须显式声明存在的 `.json` 文件，占位符使用的 fixture 也必须声明。
 
 ```yaml
 id: login-success
 version: 1
+priority: P0
 status: active
 title: 用户用正确凭证登录成功
 business_context: |
   这条意图覆盖的业务真相。
+precondition: 已存在可登录用户。
 fixtures: [users.json]
 assertions:
   - id: greet-user
     description: 顶栏欢迎语含 {{users.validUser.name}}
+edge_cases: []
+tags: [auth, login]
 ```
 
-同一意图内的 `assertions[].id` 必须唯一。
+同一意图内的 `assertions[].id` 与 `edge_cases[].id` 必须唯一。多条意图属于同一路径时，用 `intentions/journeys/<id>.yaml` 记录公共前置条件、分支条件、分支结果、引用的 intent 和尚未覆盖的 `edge_branches`。
 
 spec 首个非空行必须绑定意图版本：
 
@@ -129,19 +147,19 @@ await expect(page.getByTestId("topbar-greeting")).toContainText(users.validUser.
 本插件不靠 hook 强制 Agent 行为，而是让证据可审计：
 
 1. Playwright 结果是机器事实。
-2. 意图层与 spec 分离，弱化或漏测会表现为绑定/覆盖缺口。
-3. `report.md` 必须原样贴入 `validate-intention` 和 `check-binding` 输出。
+2. 意图层、journey 层与 spec 分离，弱化、漏测或缺分支会表现为绑定/覆盖/路径索引缺口。
+3. `report.md` 必须保留 `validate-intention`、`check-intentions`、`check-journeys` 和 `check-binding` 的原始 stdout，或保留带 sha256、行数、字节数和 bounded excerpt 的 artifact 索引。
 
-当前机器层能检查 schema、fixture、version、active 缺 spec、assertion 标记覆盖、skip/only/fixme。断言语义是否被弱化仍由 critic + git diff 审计承担。
+当前机器层能检查基础 schema、严格意图字段、fixture、journey 引用、version、active 缺 spec、assertion 标记覆盖、skip/only/fixme。断言语义是否被弱化仍由 critic + git diff 审计承担。
 
 ## 验收
 
 当前插件根验证结果应满足：
 
 ```powershell
-npm test          # 29 项全通过
-npm run validate  # template 两脚本均 ok:true
-npm run dogfood   # examples/login-fixture e2e + 审计脚本全通过
+npm test          # Node 测试全通过
+npm run validate  # template 四个审计脚本均 ok:true
+npm run dogfood   # examples/login-fixture e2e + 四个审计脚本全通过
 ```
 
 可手工制造对抗样例验证：
@@ -149,6 +167,12 @@ npm run dogfood   # examples/login-fixture e2e + 审计脚本全通过
 - 把 spec 头从 `(v1)` 改成 `(v2)`，`check-binding` 应返回 `driftErrors` 且退出 1。
 - 删除某条 `// assertion: <id>`，`check-binding` 应返回 `assertionCoverage` 且退出 1。
 - 添加真实 `test.skip(...)`，`check-binding` 应返回 `skipFindings` 且退出 1。
+- 删除意图的 `priority` 或 `precondition`，`check-intentions` 应返回 errors 且退出 1。
+- 让 journey 引用不存在的 intent，`check-journeys` 应返回 errors 且退出 1。
+
+## 版本说明
+
+详见 [CHANGELOG.md](CHANGELOG.md)。
 
 ## 非 Codex 适配
 

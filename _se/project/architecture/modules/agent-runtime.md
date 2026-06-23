@@ -12,8 +12,9 @@ Agent 运行时壳负责把测试工程流程暴露给具备文件读写、shell
 ## 子模块
 
 - `skills/testing-intent/SKILL.md`：需求到意图，定义意图 schema、状态流转和定稿前 critic 审查。
+- `skills/testing-journey/SKILL.md`：同一路径分支索引，定义 journey schema、intent 引用和缺口暴露。
 - `skills/testing-spec/SKILL.md`：意图到 Playwright spec，定义 spec 头部绑定、assertion 标记和禁止 skip/only。
-- `skills/testing-run/SKILL.md`：执行、失败分类和报告，定义收工前必须运行两个校验脚本并原样贴出结果。
+- `skills/testing-run/SKILL.md`：执行、失败分类和报告，定义收工前必须运行四个校验脚本并保留原始输出或 artifact 索引。
 - `agents/test-author.md`：负责写意图和 spec。
 - `agents/test-runner.md`：负责执行 Playwright、修执行层问题和产出报告。
 - `agents/critic.md`：负责对抗审查意图覆盖、断言弱化、skip、校验证据和未经批准的 active 意图修改。
@@ -22,7 +23,7 @@ Agent 运行时壳负责把测试工程流程暴露给具备文件读写、shell
 
 Agent 运行时壳依赖：
 
-- `tools/validate-intention.mjs` 和 `tools/check-binding.mjs` 作为机器证据来源。
+- `tools/validate-intention.mjs`、`tools/check-intentions.mjs`、`tools/check-journeys.mjs` 和 `tools/check-binding.mjs` 作为机器证据来源。
 - `template/` 作为业务项目接入骨架。
 - 业务项目中的 Playwright 环境作为执行目标。
 

@@ -10,7 +10,8 @@
 //
 // 只报告、不阻断：输出结构化 JSON；任一类问题非空时以退出码 1 结束。
 
-import { INTENTIONS_DIR, SPECS_DIR, loadIntentions, loadSpecs, pathExists } from "./lib/intention.mjs";
+import path from "node:path";
+import { INTENTIONS_DIR, SPECS_DIR, assetRoot, loadIntentions, loadSpecs, pathExists } from "./lib/intention.mjs";
 
 const SKIP_PATTERNS = [
   { name: "skip", re: /\.skip\b/ },
@@ -106,12 +107,23 @@ function markedAssertionIds(specText) {
 }
 
 export function runCheckBinding(projectDir) {
+  const root = assetRoot(projectDir);
   const intentions = loadIntentions(projectDir);
   const specs = loadSpecs(projectDir);
 
-  const byFile = new Map(); // file -> intention data
+  const byFile = new Map(); // spec header key -> intention item
+  const ambiguousHeaderKeys = new Set();
   for (const it of intentions) {
-    if (it.data) byFile.set(it.file, it.data);
+    if (!it.data) continue;
+    for (const key of [it.file, path.basename(it.file)]) {
+      const previous = byFile.get(key);
+      if (previous && previous.file !== it.file) {
+        byFile.delete(key);
+        ambiguousHeaderKeys.add(key);
+      } else if (!ambiguousHeaderKeys.has(key)) {
+        byFile.set(key, it);
+      }
+    }
   }
 
   const driftErrors = [];
@@ -120,12 +132,12 @@ export function runCheckBinding(projectDir) {
   const referencedActive = new Set();
   const specsByIntention = new Map();
 
-  if (!pathExists(projectDir, INTENTIONS_DIR)) {
+  if (!pathExists(root, INTENTIONS_DIR)) {
     projectErrors.push({ file: INTENTIONS_DIR, msg: `缺少目录: ${INTENTIONS_DIR}` });
   } else if (intentions.length === 0) {
     projectErrors.push({ file: INTENTIONS_DIR, msg: "未找到任何意图文件: intentions/*.yaml" });
   }
-  if (!pathExists(projectDir, SPECS_DIR)) {
+  if (!pathExists(root, SPECS_DIR)) {
     projectErrors.push({ file: SPECS_DIR, msg: `缺少目录: ${SPECS_DIR}` });
   }
   for (const it of intentions) {
@@ -140,23 +152,31 @@ export function runCheckBinding(projectDir) {
       continue;
     }
     const { intentionFile, version } = spec.header;
-    const intent = byFile.get(intentionFile);
-    if (!intent) {
+    if (ambiguousHeaderKeys.has(intentionFile)) {
+      driftErrors.push({
+        spec: spec.file,
+        msg: `引用的意图文件名不唯一，请使用相对路径: ${intentionFile}`,
+      });
+      continue;
+    }
+    const item = byFile.get(intentionFile);
+    if (!item) {
       driftErrors.push({
         spec: spec.file,
         msg: `引用的意图不存在: ${intentionFile}`,
       });
       continue;
     }
+    const intent = item.data;
     if (intent.version !== version) {
       driftErrors.push({
         spec: spec.file,
-        msg: `version 漂移: spec 标注 v${version}, 意图 ${intentionFile} 实为 v${intent.version}`,
+        msg: `version 漂移: spec 标注 v${version}, 意图 ${item.file} 实为 v${intent.version}`,
       });
     }
-    if (!specsByIntention.has(intentionFile)) specsByIntention.set(intentionFile, []);
-    specsByIntention.get(intentionFile).push(spec);
-    referencedActive.add(intentionFile);
+    if (!specsByIntention.has(item.file)) specsByIntention.set(item.file, []);
+    specsByIntention.get(item.file).push(spec);
+    referencedActive.add(item.file);
   }
 
   const missingSpec = [];

@@ -1,11 +1,13 @@
 id: login-success
 version: 1
+priority: P0
 status: active
 title: 用户用正确凭证登录成功
 business_context: |
   注册用户在登录页输入有效的用户名与密码并提交后，
   系统 MUST 完成认证、跳转到仪表盘，并在顶栏显示该用户的欢迎语。
   这条意图覆盖「正常登录」这一核心业务路径，是发布前必过项。
+precondition: 已存在可登录用户，并且用户访问登录页。
 fixtures:
   - users.json
 assertions:
@@ -15,3 +17,7 @@ assertions:
     description: 顶栏出现欢迎语，文案包含 {{users.validUser.name}}
   - id: session-persisted
     description: 刷新页面后仍处于登录态，不被退回登录页
+edge_cases:
+  - id: invalid-password
+    description: 密码错误时登录被拒绝，并返回可理解的认证失败错误
+tags: [auth, login]

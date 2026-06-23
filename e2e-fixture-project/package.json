@@ -1,14 +1,16 @@
 {
   "name": "se-testing-e2e-fixture-project",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
   "scripts": {
     "start": "node app/server.mjs",
     "test:e2e": "playwright test",
     "se:validate": "node ../se-testing/tools/validate-intention.mjs .",
+    "se:check-intentions": "node ../se-testing/tools/check-intentions.mjs .",
+    "se:check-journeys": "node ../se-testing/tools/check-journeys.mjs .",
     "se:check-binding": "node ../se-testing/tools/check-binding.mjs .",
-    "se:audit": "npm run se:validate && npm run se:check-binding"
+    "se:audit": "npm run se:validate && npm run se:check-intentions && npm run se:check-journeys && npm run se:check-binding"
   },
   "devDependencies": {
     "@playwright/test": "^1.54.0"

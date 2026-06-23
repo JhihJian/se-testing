@@ -1,0 +1,20 @@
+id: login
+version: 1
+status: active
+title: 登录路径
+business_context: |
+  用户从登录页提交凭证后，系统会根据凭证与账号状态进入不同业务分支。
+  该 journey 用于集中审查登录路径下哪些分支已有独立意图，哪些仍是已知缺口。
+shared_precondition: 用户访问登录页。
+tags: [auth, login]
+branches:
+  - id: success
+    intent: login-success
+    condition: 凭证正确且账号可用
+    result: 进入仪表盘，并保持登录态
+    priority: P0
+edge_branches:
+  - id: invalid-password
+    condition: 密码错误
+    expected_result: 登录被拒绝，并返回可理解的认证失败错误
+    reason: 模板只提供成功路径 e2e，失败路径等待业务项目补充意图与 spec

@@ -6,12 +6,13 @@
 
 ## 目录结构
 
-- `intentions/login-success.yaml`：示例 active 意图，展示版本、状态、业务上下文、fixture 声明和 assertion。
+- `intentions/login-success.yaml`：示例 active 意图，展示版本、优先级、状态、业务上下文、前置条件、fixture 声明、assertion、edge case 和 tags。
+- `intentions/journeys/login.yaml`：示例 journey，展示同一路径下的成功分支和已知缺口。
 - `specs/login-success.spec.ts`：示例 Playwright spec，首行绑定意图版本，并用 `// assertion: <id>` 标记三条断言。
 - `support/fixtures/users.json`：示例用户数据，密码以 `<from-env:E2E_VALID_PASSWORD>` 表达来源，不在 fixture 中保存真实密码。
 - `support/pages/login.page.ts`：登录 Page Object，封装选择器和登录动作。
 - `playwright.config.ts`：Playwright 配置，写出 list、JSON、HTML 三类报告，并在失败时保留 trace。
-- `report.md`：可审计报告模板，要求填满意图链、两个校验脚本输出、diff 摘要和 Playwright 证据。
+- `report.md`：可审计报告模板，要求填满意图链、四个校验脚本输出或 artifact 索引、diff 摘要和 Playwright 证据。
 
 ## 运行方式
 
@@ -21,11 +22,13 @@
 
 ```powershell
 node <se-testing-root>\tools\validate-intention.mjs .
+node <se-testing-root>\tools\check-intentions.mjs .
+node <se-testing-root>\tools\check-journeys.mjs .
 node <se-testing-root>\tools\check-binding.mjs .
 ```
 
 ## 边界
 
-模板不是业务规范本身。业务项目应按自身需求维护 `intentions/` 与 `specs/`，但必须保留意图 schema、spec 绑定头、assertion 标记和报告证据这些架构契约。
+模板不是业务规范本身。业务项目应按自身需求维护 `intentions/`、`intentions/journeys/` 与 `specs/`，但必须保留意图 schema、journey 索引边界、spec 绑定头、assertion 标记和报告证据这些架构契约。
 
 选择器或页面结构变化属于执行层问题，优先修改 Page Object；业务真相变化属于意图层问题，需要人类裁决并同步意图版本。

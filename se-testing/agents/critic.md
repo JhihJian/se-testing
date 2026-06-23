@@ -24,8 +24,10 @@ tools: Read, Glob, Grep, Bash
 挑「有没有作弊」，**MUST** 亲自核验证据而非采信声明：
 
 - spec 里有没有 `test.skip` / `.only` / `fixme`？`check-binding` 的 `assertionCoverage` 是否为空？（自己跑 `check-binding.mjs` 复核，别信 report 里的话）
+- `check-intentions` 是否通过？意图是否缺 `priority/precondition/edge_cases/tags`，是否出现空泛描述？
+- `check-journeys` 是否通过？journey warning 是否在报告中回应，是否有 spec 直接绑定 journey？
 - 断言是否被弱化（精确断言换成宽松断言、被删除）？查 git diff 的断言增删。
-- `report.md` 的 validate / check-binding 两区是不是空的或与实际重跑结果不符？**空 = 没跑 = 不通过**。
+- `report.md` 的 validate / check-intentions / check-journeys / check-binding 证据区是不是空的或与实际重跑结果不符？**空 = 没跑 = 不通过**。
 - 有没有 `active` 意图被擅自修改却没有人类批准记录？
 
 ## 死锁处理

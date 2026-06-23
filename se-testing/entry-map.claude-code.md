@@ -32,6 +32,7 @@ cp -r <se-testing>/template/.      .            # 仅首次接入时铺骨架
 ```text
 /test <PRD>  ──▶  编排者（主上下文）
    1. Task → test-author：需求 → draft 意图（testing-intent skill）
+      · 同一路径多分支时维护 journey（testing-journey skill）
    2. Task → critic：意图定稿前对抗审查（节点一）
    3. ⏸ 人类介入点：人确认 draft → reviewed
    4. Task → test-author：reviewed 意图 → spec（testing-spec skill）
@@ -39,7 +40,7 @@ cp -r <se-testing>/template/.      .            # 仅首次接入时铺骨架
         · 执行层失败自主修复重跑
         · 疑似意图层问题 → 升级 critic → 产出提案 → ⏸ 等人
    6. Task → critic：报告产出前对抗审查（节点二）
-   7. 产出 report.md（validate + check-binding 原文 + Playwright 证据）
+   7. 产出 report.md（validate + check-intentions + check-journeys + check-binding 原文或 artifact 索引 + Playwright 证据）
 ```
 
 三个人类介入点（设计第 7 节）：意图定稿确认、业务真相裁决、critic 死锁。其余全自主。
@@ -54,7 +55,7 @@ cp -r <se-testing>/template/.      .            # 仅首次接入时铺骨架
   "hooks": {
     "Stop": [
       { "matcher": "", "hooks": [
-        { "type": "command", "command": "node <se-testing>/tools/validate-intention.mjs . && node <se-testing>/tools/check-binding.mjs ." }
+        { "type": "command", "command": "node <se-testing>/tools/validate-intention.mjs . && node <se-testing>/tools/check-intentions.mjs . && node <se-testing>/tools/check-journeys.mjs . && node <se-testing>/tools/check-binding.mjs ." }
       ]}
     ]
   }

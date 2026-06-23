@@ -1,6 +1,6 @@
 ---
 name: testing-spec
-description: 把已 reviewed/active 的意图实现成 Playwright spec——怎么测。spec 头部必须写意图绑定行且版本号对齐，禁止 skip/.only，业务数据只能取自 fixture。
+description: 把已 reviewed/active 的意图实现成 Playwright spec——怎么测。spec 头部必须写意图绑定行且版本号对齐，禁止 skip/.only，业务数据只能取自 fixture；支持按意图或模块安全并发生成 spec。
 ---
 
 # testing-spec：意图 → spec
@@ -37,6 +37,21 @@ spec 层回答 **「怎么测」**。它 **MUST** 忠实实现意图的每条断
 2. 建 `specs/<id>.spec.ts`，首行写绑定行 `// intention: <id>.yaml (vN)`。
 3. 为每条断言写 `expect`，每条 `expect` 前用独立行 `// assertion: <id>` 绑定意图断言；数据走 fixture，操作走 Page Object。
 4. 跑 `node <se-testing>/tools/check-binding.mjs .`，确认无 drift / 无 skip / active 意图都有 spec / `assertionCoverage` 为空。
+
+## 并发加速
+
+编排者 **SHOULD** 按意图或模块并发派发 spec worker：
+
+- 单意图 worker：负责 `intentions/<id>.yaml` -> `specs/<id>.spec.ts`。
+- 模块 worker：负责同一业务域下的一组意图与 spec。
+- Page Object worker：仅在页面对象可按模块拆分时使用，如 `support/pages/auth.page.ts`、`support/pages/assets.page.ts`。
+
+并发约束：
+
+- 每个 spec worker **MUST** 只写自己拥有的 spec 文件和被分配的 Page Object/helper。
+- 多个 worker **MUST NOT** 同时改同一个 `support/pages/*.page.ts` 或共享 helper；需要共享改动时交主上下文串行合并。
+- fixture 应由 intent 阶段或主上下文维护；spec worker 发现 fixture 缺口时可提议或只修改已分配 fixture。
+- 主上下文最终 **MUST** 统一跑 `check-binding.mjs`，不要采信各 worker 的局部自检作为最终结论。
 
 ## MUST / MUST NOT
 

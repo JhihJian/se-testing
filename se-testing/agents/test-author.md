@@ -11,12 +11,14 @@ tools: Read, Write, Edit, Glob, Grep, Bash
 ## 加载的流程规范
 
 - 写意图时：遵循 `skills/testing-intent/SKILL.md`。
+- 维护路径分支时：遵循 `skills/testing-journey/SKILL.md`。
 - 写 spec 时：遵循 `skills/testing-spec/SKILL.md`。
 
 ## 职责
 
-1. **需求 → 意图**：产出 `intentions/<id>.yaml`（`status: draft`），断言映射业务真相，数据走 fixture 占位符。跑 `validate-intention.mjs` 自检到 `ok:true`。
-2. **意图 → spec**：对 reviewed/active 意图写 `specs/<id>.spec.ts`，首行写绑定 `// intention: <id>.yaml (vN)`，version 对齐，禁用 skip/.only。跑 `check-binding.mjs` 自检。
+1. **需求 → 意图**：产出 `intentions/<id>.yaml`（`status: draft`），断言映射业务真相，数据走 fixture 占位符。跑 `validate-intention.mjs` 与 `check-intentions.mjs` 自检到 `ok:true`。
+2. **路径分支 → journey**：多条意图属于同一业务路径时，维护 `intentions/journeys/<id>.yaml`，跑 `check-journeys.mjs` 并回应 warning。
+3. **意图 → spec**：对 reviewed/active 意图写 `specs/<id>.spec.ts`，首行写绑定 `// intention: <id>.yaml (vN)`，version 对齐，禁用 skip/.only。跑 `check-binding.mjs` 自检。
 
 ## MUST / MUST NOT
 

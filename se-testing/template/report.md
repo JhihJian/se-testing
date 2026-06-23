@@ -1,7 +1,7 @@
 # 测试执行报告（可审计产物）
 
 > 由 `test-runner` 在收工前产出。每个「绿色」声明 **MUST** 附机器证据，使人类 / critic 能用证据反验。
-> 模板共五区，**MUST** 全部填满；留空的区块本身就是「没跑」的证据，一眼可见。
+> 模板证据区 **MUST** 全部填满；留空的区块本身就是「没跑」的证据，一眼可见。
 
 - 任务：<一句话描述本次测试任务，如「为 PRD-登录 生成并运行测试」>
 - 运行时间：<ISO8601>
@@ -32,7 +32,30 @@
 
 ---
 
-## 3. check-binding 输出（原样粘贴，含退出码）
+## 3. check-intentions 输出（原样粘贴或 artifact 索引，含退出码）
+
+> 命令：`node ../se-testing/tools/check-intentions.mjs .`
+> 退出码：`<0|1>`
+
+```json
+<把 stdout 原样粘到这里；若过长则写 artifact 路径、sha256、行数、字节数和 head/tail excerpt>
+```
+
+---
+
+## 4. check-journeys 输出（原样粘贴或 artifact 索引，含退出码）
+
+> 命令：`node ../se-testing/tools/check-journeys.mjs .`
+> 退出码：`<0|1>`
+> warning 回应：<接受 / 拆分 journey / 补 intent / 等人确认>
+
+```json
+<把 stdout 原样粘到这里；若项目不维护 journey，也要贴出 warning 或说明>
+```
+
+---
+
+## 5. check-binding 输出（原样粘贴或 artifact 索引，含退出码）
 
 > 命令：`node ../se-testing/tools/check-binding.mjs .`
 > 退出码：`<0|1>`
@@ -43,7 +66,7 @@
 
 ---
 
-## 4. 本次 git diff 摘要
+## 6. 本次 git diff 摘要
 
 - 改动的意图文件：<list 或「无」>
 - 新增/删除的断言：<逐条；断言被删除是高风险信号，critic 必查>
@@ -55,11 +78,12 @@
 
 ---
 
-## 5. Playwright 原始报告与 trace
+## 7. Playwright 原始报告与 trace
 
 - HTML 报告：`playwright-report/html/index.html`
 - JSON 结果：`playwright-report/results.json`
 - 失败用例 trace：`<trace.zip 路径列表，或「本次无失败」>`
+- 长输出 artifact：`test-artifacts/<name>.stdout.txt`（如有，列 sha256 / 行数 / 字节数）
 
 ---
 

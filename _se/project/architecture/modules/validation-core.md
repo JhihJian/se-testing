@@ -7,8 +7,10 @@
 ## 组件
 
 - `tools/lib/yaml.mjs`：使用 `js-yaml` 解析标准 YAML。
-- `tools/lib/intention.mjs`：共享 UTF-8/BOM 读取、文件扫描、意图加载、spec 头解析、占位符提取和 fixture 路径解析。
+- `tools/lib/intention.mjs`：共享 UTF-8/BOM 读取、文件扫描、资产根识别、意图/journey 加载、spec 头解析、占位符提取和 fixture 路径解析。
 - `tools/validate-intention.mjs`：校验意图 YAML。
+- `tools/check-intentions.mjs`：严格校验意图质量。
+- `tools/check-journeys.mjs`：校验 journey 路径/分支索引。
 - `tools/check-binding.mjs`：校验意图与 spec 的绑定关系。
 - `tools/*.test.mjs`：用 `node:test` 固定核心规则。
 
@@ -37,9 +39,31 @@
 - `active` 意图的 assertion 必须被 spec 中的独立 `// assertion: <id>` 标记覆盖，未知标记也会报错。
 - spec 代码中出现 `.skip`、`.only` 或 `fixme` 会进入 `skipFindings`；扫描会剥离注释和字符串，降低误报。
 
+## check-intentions
+
+`check-intentions` 读取目标项目的普通意图文件，输出 `{ ok, scanned, errors, warnings }`。它是严格交付检查，当前规则包括：
+
+- 意图必须包含 `priority`、`precondition`、`edge_cases` 和 `tags` 等审计字段。
+- `id`、`assertions[].id`、`edge_cases[].id` 必须是 kebab-case。
+- `priority` 只能是 `P0`、`P1`、`P2`。
+- assertion 和 edge case 描述不能只写“功能正常”“返回正确结果”等空泛表述；空泛描述进入 warning。
+
+## check-journeys
+
+`check-journeys` 读取 `intentions/journeys/*.yaml`，输出 `{ ok, scannedJourneys, errors, warnings }`。当前规则包括：
+
+- journey 必须包含公共前置条件、tags、branches 和 edge_branches。
+- 每个 branch 必须引用已存在的 intent id。
+- spec 不得直接绑定 journey 文件。
+- 空 `edge_branches`、intent 复用、过宽 journey 等进入 warning，供 critic 或人类审查回应。
+
+## 资产根与扫描
+
+校验内核支持两类资产根：项目根下的 `intentions/`，或项目根下的 `tests/intentions/`。普通意图支持 `intentions/<domain>/*.yaml` 这类业务域子目录；`intentions/journeys/` 只由 journey 检查读取，不会被当作普通意图扫描。
+
 ## 运行约束
 
 - Node 版本要求为 `>=18`。
 - 唯一运行依赖是 `js-yaml`。
 - 脚本只读取目标项目文件并报告，不直接修改文件。
-- 任一 error 类结果非空时退出码为 1；只有 warning 时 `validate-intention` 仍可退出 0。
+- 任一 error 类结果非空时退出码为 1；只有 warning 时严格检查仍可退出 0，但报告或 critic 必须回应 warning。

@@ -1,16 +1,18 @@
 {
   "name": "se-testing",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
   "description": "面向 AI Agent 自主执行的独立测试工程能力包（壳：skills/agents；核：tools/template）。",
   "bin": {
     "se-validate-intention": "tools/validate-intention.mjs",
+    "se-check-intentions": "tools/check-intentions.mjs",
+    "se-check-journeys": "tools/check-journeys.mjs",
     "se-check-binding": "tools/check-binding.mjs"
   },
   "scripts": {
     "test": "node --test \"tools/*.test.mjs\"",
-    "validate": "node tools/validate-intention.mjs template && node tools/check-binding.mjs template",
+    "validate": "node tools/validate-intention.mjs template && node tools/check-intentions.mjs template && node tools/check-journeys.mjs template && node tools/check-binding.mjs template",
     "dogfood": "node tools/run-dogfood.mjs"
   },
   "engines": {

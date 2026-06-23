@@ -20,7 +20,7 @@ tools: Read, Write, Edit, Glob, Grep, Bash
    - 数据问题 → 自主修 `support/fixtures/*.json` → 重跑。
    - 环境抖动 → 记 `flaky-cases.md`。
    - 疑似意图层问题 → **升级 critic**，产出提案，停下等人。
-3. 收工前 **MUST** 跑 `validate-intention.mjs` 与 `check-binding.mjs`，把 stdout **原样**贴进 `report.md`，填满五区。
+3. 收工前 **MUST** 跑 `validate-intention.mjs`、`check-intentions.mjs`、`check-journeys.mjs` 与 `check-binding.mjs`，把 stdout 原样贴进 `report.md` 或写入带 sha256 的 artifact，填满证据区。
 
 ## MUST / MUST NOT（信任锚点）
 

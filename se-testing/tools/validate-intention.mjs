@@ -13,6 +13,7 @@
 import {
   VALID_STATUS,
   INTENTIONS_DIR,
+  assetRoot,
   loadIntentions,
   extractPlaceholders,
   fixturePath,
@@ -50,7 +51,7 @@ function validateIntention(projectDir, item, errors, warnings) {
   if (d.version !== undefined && !(Number.isInteger(d.version) && d.version > 0)) {
     errors.push({ file: where, msg: `version 必须是正整数, 实际: ${d.version}` });
   }
-  const expectedId = where.replace(/\.yaml$/, "");
+  const expectedId = where.split("/").pop().replace(/\.yaml$/, "");
   if (d.id !== undefined && d.id !== expectedId) {
     errors.push({ file: where, msg: `id (${d.id}) 必须与文件名一致 (${expectedId})` });
   }
@@ -130,7 +131,8 @@ function validateIntention(projectDir, item, errors, warnings) {
 export function runValidate(projectDir) {
   const errors = [];
   const warnings = [];
-  if (!pathExists(projectDir, INTENTIONS_DIR)) {
+  const root = assetRoot(projectDir);
+  if (!pathExists(root, INTENTIONS_DIR)) {
     return {
       ok: false,
       scanned: 0,

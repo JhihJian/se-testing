@@ -1,7 +1,7 @@
 # 测试执行报告
 
 - 任务：虚构「星河协作台」登录业务项目，验证 se-testing 能否完成真实 e2e 行为验证与审计绑定检查
-- 运行时间：2026-06-17T07:34:23.584Z
+- 运行时间：2026-06-23T02:05:09.315Z
 - 运行环境：`E2E_BASE_URL=http://127.0.0.1:4174`、Chromium、Windows
 
 ## 1. 意图 -> spec -> pass/fail 链
@@ -22,7 +22,7 @@ Playwright 摘要：
     "projectName": "chromium",
     "expectedStatus": "passed",
     "status": "passed",
-    "duration": 318,
+    "duration": 412,
     "retry": 0
   }
 ]
@@ -30,7 +30,7 @@ Playwright 摘要：
 
 ## 2. validate-intention 输出
 
-命令：`C:\Program Files\nodejs\node.exe D:\tmp\测试工程实现\se-testing\tools\validate-intention.mjs .`
+命令：`C:\Program Files\nodejs\node.exe D:\github\se-skills\se-testing-gh\se-testing\tools\validate-intention.mjs .`
 退出码：`0`
 
 ```json
@@ -42,9 +42,39 @@ Playwright 摘要：
 }
 ```
 
-## 3. check-binding 输出
+## 3. check-intentions 输出
 
-命令：`C:\Program Files\nodejs\node.exe D:\tmp\测试工程实现\se-testing\tools\check-binding.mjs .`
+命令：`C:\Program Files\nodejs\node.exe D:\github\se-skills\se-testing-gh\se-testing\tools\check-intentions.mjs .`
+退出码：`0`
+
+```json
+{
+  "ok": true,
+  "scanned": 1,
+  "errors": [],
+  "warnings": []
+}
+```
+
+## 4. check-journeys 输出
+
+命令：`C:\Program Files\nodejs\node.exe D:\github\se-skills\se-testing-gh\se-testing\tools\check-journeys.mjs .`
+退出码：`0`
+
+```json
+{
+  "ok": true,
+  "scannedJourneys": 1,
+  "errors": [],
+  "warnings": []
+}
+```
+
+journey warning 回应：本示例显式记录失败登录分支为 dogfood 范围外的已知缺口。
+
+## 5. check-binding 输出
+
+命令：`C:\Program Files\nodejs\node.exe D:\github\se-skills\se-testing-gh\se-testing\tools\check-binding.mjs .`
 退出码：`0`
 
 ```json
@@ -61,21 +91,27 @@ Playwright 摘要：
 }
 ```
 
-## 4. Playwright 原始报告与 trace
+## 6. Playwright 原始报告与 trace
 
 - HTML 报告：`playwright-report/html/index.html`
 - JSON 结果：`playwright-report/results.json`
 - 失败用例 trace：本次无失败
 
-## 5. 执行命令记录
+## 7. 执行命令记录
 
 ```text
 C:\Windows\system32\cmd.exe /d /s /c npm run test:e2e
 退出码：0
 
-C:\Program Files\nodejs\node.exe D:\tmp\测试工程实现\se-testing\tools\validate-intention.mjs .
+C:\Program Files\nodejs\node.exe D:\github\se-skills\se-testing-gh\se-testing\tools\validate-intention.mjs .
 退出码：0
 
-C:\Program Files\nodejs\node.exe D:\tmp\测试工程实现\se-testing\tools\check-binding.mjs .
+C:\Program Files\nodejs\node.exe D:\github\se-skills\se-testing-gh\se-testing\tools\check-intentions.mjs .
+退出码：0
+
+C:\Program Files\nodejs\node.exe D:\github\se-skills\se-testing-gh\se-testing\tools\check-journeys.mjs .
+退出码：0
+
+C:\Program Files\nodejs\node.exe D:\github\se-skills\se-testing-gh\se-testing\tools\check-binding.mjs .
 退出码：0
 ```

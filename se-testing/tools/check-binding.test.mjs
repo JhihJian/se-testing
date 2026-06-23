@@ -12,9 +12,11 @@ function makeProject() {
   return root;
 }
 function writeIntention(root, file, { version = 1, status = "active" } = {}) {
+  const abs = path.join(root, "intentions", file);
+  fs.mkdirSync(path.dirname(abs), { recursive: true });
   fs.writeFileSync(
-    path.join(root, "intentions", file),
-    `id: ${file.replace(/\.yaml$/, "")}\nversion: ${version}\nstatus: ${status}\ntitle: t\nbusiness_context: |\n  c\nassertions:\n  - id: a\n    description: d\n`
+    abs,
+    `id: ${path.basename(file).replace(/\.yaml$/, "")}\nversion: ${version}\nstatus: ${status}\ntitle: t\nbusiness_context: |\n  c\nassertions:\n  - id: a\n    description: d\n`
   );
 }
 function writeSpec(root, file, body) {
@@ -158,4 +160,30 @@ test("缺 spec 头部被报错", () => {
   writeSpec(root, "login-success.spec.ts", `import { test } from "@playwright/test";\n`);
   const r = runCheckBinding(root);
   assert.ok(r.missingHeader.some((e) => /缺少/.test(e.msg)));
+});
+
+test("支持用相对路径绑定业务域子目录意图", () => {
+  const root = makeProject();
+  writeIntention(root, path.join("auth", "login-success.yaml"), { version: 1 });
+  writeSpec(root, "login-success.spec.ts", SPEC_OK.replace("login-success.yaml", "auth/login-success.yaml"));
+  const r = runCheckBinding(root);
+  assert.equal(r.ok, true, JSON.stringify(r));
+});
+
+test("basename 绑定在文件名不冲突时仍兼容", () => {
+  const root = makeProject();
+  writeIntention(root, path.join("auth", "login-success.yaml"), { version: 1 });
+  writeSpec(root, "login-success.spec.ts", SPEC_OK);
+  const r = runCheckBinding(root);
+  assert.equal(r.ok, true, JSON.stringify(r));
+});
+
+test("basename 绑定在多个目录同名意图时要求使用相对路径", () => {
+  const root = makeProject();
+  writeIntention(root, path.join("auth", "login-success.yaml"), { version: 1 });
+  writeIntention(root, path.join("admin", "login-success.yaml"), { version: 1 });
+  writeSpec(root, "login-success.spec.ts", SPEC_OK);
+  const r = runCheckBinding(root);
+  assert.equal(r.ok, false);
+  assert.ok(r.driftErrors.some((e) => /文件名不唯一/.test(e.msg)));
 });

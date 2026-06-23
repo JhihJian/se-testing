@@ -13,7 +13,9 @@ function makeProject() {
   return root;
 }
 function writeIntention(root, file, body) {
-  fs.writeFileSync(path.join(root, "intentions", file), body);
+  const abs = path.join(root, "intentions", file);
+  fs.mkdirSync(path.dirname(abs), { recursive: true });
+  fs.writeFileSync(abs, body);
 }
 function writeFixture(root, file, obj) {
   fs.writeFileSync(path.join(root, "support", "fixtures", file), JSON.stringify(obj, null, 2));
@@ -92,6 +94,24 @@ test("id 与文件名不一致被报错", () => {
   writeIntention(root, "login-success.yaml", VALID.replace("id: login-success", "id: wrong-id"));
   const r = runValidate(root);
   assert.ok(r.errors.some((e) => /id .* 必须与文件名一致/.test(e.msg)));
+});
+
+test("业务域子目录下的意图按文件名校验 id", () => {
+  const root = makeProject();
+  writeFixture(root, "users.json", { validUser: { name: "Alice" } });
+  writeIntention(root, path.join("auth", "login-success.yaml"), VALID);
+  const r = runValidate(root);
+  assert.equal(r.ok, true, JSON.stringify(r.errors));
+});
+
+test("intentions/journeys 不作为普通意图扫描", () => {
+  const root = makeProject();
+  writeFixture(root, "users.json", { validUser: { name: "Alice" } });
+  writeIntention(root, "login-success.yaml", VALID);
+  writeIntention(root, path.join("journeys", "auth-login.yaml"), `id: auth-login\nversion: 1\n`);
+  const r = runValidate(root);
+  assert.equal(r.ok, true, JSON.stringify(r.errors));
+  assert.equal(r.scanned, 1);
 });
 
 test("assertion id 重复时报错", () => {
