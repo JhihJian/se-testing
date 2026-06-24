@@ -18,6 +18,9 @@ tools: Read, Glob, Grep, Bash
 - 断言是不是测了无关紧要的点、避开了真正难证的业务真相？
 - 有没有把可观察业务结果偷换成实现细节？
 - 数据是否硬编码（应被 `validate-intention` 告警的也复核）？
+- 有没有把同名字段、同终态、同错误消息或同 DTO 的约束错误合并？字段名相同不是业务语义相同。
+- 对自定义文本/备注/说明/原因类输入，是否有非枚举成功样本？对枚举字段，是否有非枚举失败样本？
+- 失败断言是否说明了业务上为什么应失败，还是只是在固化当前实现拒绝某输入？
 
 ## 节点二：报告产出前
 
@@ -27,6 +30,8 @@ tools: Read, Glob, Grep, Bash
 - `check-intentions` 是否通过？意图是否缺 `priority/precondition/edge_cases/tags`，是否出现空泛描述？
 - `check-journeys` 是否通过？journey warning 是否在报告中回应，是否有 spec 直接绑定 journey？
 - 断言是否被弱化（精确断言换成宽松断言、被删除）？查 git diff 的断言增删。
+- 新增或修改的测试数据是否真实覆盖业务输入形态，还是只使用了更容易通过的枚举值、空值或模板值？
+- 对缺陷回归，旧测试为何没拦住是否有解释；若旧测试 oracle 错误，是否已按意图版本和人类确认流程处理？
 - `report.md` 的 validate / check-intentions / check-journeys / check-binding 证据区是不是空的或与实际重跑结果不符？**空 = 没跑 = 不通过**。
 - 有没有 `active` 意图被擅自修改却没有人类批准记录？
 

@@ -10,6 +10,7 @@
 - 增强 `validate-intention` / `check-binding` 的资产读取能力，支持 `intentions/<domain>/*.yaml`、`tests/intentions` 资产根，并排除 `intentions/journeys`。
 - 更新 `testing-run` 流程，收工前要求保留 `validate-intention`、`check-intentions`、`check-journeys`、`check-binding` 四类机器证据，并支持长输出 artifact 索引。
 - 更新模板、dogfood 示例、subagent 说明和跨运行时入口映射，使文档、示例和工具能力保持一致。
+- 补充 Codex 入口映射，以及语义边界、真实输入样本和回归缺陷复盘规则，防止同名字段、同终态或当前实现行为被误写成业务意图。
 
 ## 0.1.0 - 2026-06-17
 

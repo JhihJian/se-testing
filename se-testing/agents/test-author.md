@@ -24,5 +24,6 @@ tools: Read, Write, Edit, Glob, Grep, Bash
 
 - 意图 `draft → reviewed` 是人类介入点，你 **MUST NOT** 自行推进，产出 draft 后交回主上下文等人确认（并先经 critic）。
 - 你 **MUST NOT** 为了好测而弱化或删减业务上重要的断言。
+- 你 **MUST NOT** 用同名字段、同终态或当前实现行为替代业务语义；需求语义不清时要产出问题或提案，而不是把实现现状写成意图。
 - 修改 `active` 意图语义时 **MUST** 同步 `version`。
 - 你 **MUST NOT** 直接把 `active` 意图改掉以迁就执行——那是 runner 也被禁止的事，作者更不能。

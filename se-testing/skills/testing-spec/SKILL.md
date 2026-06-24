@@ -31,6 +31,15 @@ spec 层回答 **「怎么测」**。它 **MUST** 忠实实现意图的每条断
 - 操作步骤 **SHOULD** 收敛到 `support/pages/*.page.ts`（Page Object），spec 只表达意图。
 - **MUST NOT** 使用 `test.skip` / `test.only` / `fixme`。`check-binding` 静态扫描会抓出，report 里一眼可见。被跳过的测试等于没覆盖那条意图。
 
+## 数据选择规则
+
+spec 数据必须证明意图里的业务边界，而不是只让当前实现走通：
+
+- 对“允许自由文本/自定义输入”的断言，成功样本 **MUST** 使用非枚举、非模板化的自然语言文本，除非意图明确要求枚举值。
+- 对“受枚举限制”的断言，失败样本 **SHOULD** 使用清楚不在枚举内的值，并断言状态、副作用或错误语义不被污染。
+- 当多个动作复用同一字段名时，spec **MUST** 为每个动作使用能区分语义的数据；不要把一个动作的合法样本复制到另一个动作上。
+- 当测试从既有 bug 或线上反馈补回时，spec **MUST** 至少包含一个接近真实输入形态的回归样本，而不仅是最小化字符串。
+
 ## 步骤
 
 1. 读意图，确认 `status` 是 reviewed/active、记下 `version`。
@@ -57,6 +66,7 @@ spec 层回答 **「怎么测」**。它 **MUST** 忠实实现意图的每条断
 
 - **MUST NOT** 通过放宽断言（如把精确断言换成 `toBeTruthy`）让测试变绿——那是语义作弊，留在 git diff 里，critic 必查。
 - **MUST NOT** 删除意图要求的断言。
+- **MUST NOT** 用“当前接口会拒绝/接受”倒推测试期望；若执行结果与意图冲突，按 [testing-run](../testing-run/SKILL.md) 的意图层分歧流程处理。
 - 选择器/数据导致的失败属执行层，交 [testing-run](../testing-run/SKILL.md) 处置；**MUST NOT** 反过来削意图。
 
 下一步：用 [testing-run](../testing-run/SKILL.md) 执行并产出可审计 report。

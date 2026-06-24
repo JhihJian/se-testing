@@ -59,11 +59,22 @@ runner 跑出失败
   |-- 选择器失效   -> 自主修 support/pages/*.page.ts -> 重跑
   |-- 数据问题     -> 自主修 support/fixtures/*.json -> 重跑
   |-- 环境抖动     -> 记 flaky-cases.md，不改测试逻辑
+  |-- 语义边界失败（同名字段/同终态/原因备注等约束混淆）
+  |      `-- 按疑似意图层问题处理，先核对需求，不直接改 active 意图
   `-- 疑似意图层问题（断言与现状矛盾）-> MUST NOT 自行改意图！
         `-- 升级 critic 判断
               |-- 断言设计偏差 -> 生成意图修正「提案」(带 git diff) -> 停，等人确认
               `-- 业务变更     -> 把意图标 needs_update 的「提案」 -> 停，等人裁决
 ```
+
+## 回归缺陷复盘要求
+
+当测试来自缺陷修复或线上反馈时，runner 在报告中 **MUST** 增加一个简短复盘：
+
+- 缺陷对应的业务输入形态是什么，现有意图是否覆盖了这种输入形态。
+- 若旧测试通过但缺陷仍出现，判断是覆盖缺口、oracle 错误、数据样本不真实，还是环境未覆盖。
+- 是否存在同名字段、同终态、同错误消息导致的语义混淆。
+- 本次修复是否需要调整意图、spec、fixture 或 journey；若调整 active 意图，是否按版本和人类确认流程处理。
 
 ## 并发加速
 
@@ -85,6 +96,7 @@ runner 跑出失败
 
 - runner **MUST NOT** 直接落盘修改 `active` 意图，**只能提议**：提案是带 git diff 的草稿，人批准前不进意图。
 - **MUST NOT** 用 `test.skip`/`.only`、放宽断言、删断言来让测试变绿。任何此类改动都留在 git diff，report 第 4 区必须如实列出断言增删。
+- **MUST NOT** 因为旧测试已经覆盖某动作就默认业务已覆盖；必须检查样本是否覆盖真实输入形态和语义边界。
 - 执行层失败（选择器/数据/环境）**MAY** 自主修复并重跑，无需等人。
 - **报告产出前 MUST 唤起 critic**：挑「有没有 skip、`projectErrors`/`assertionCoverage` 是否为空、断言是否被弱化、validate/check-intentions/check-journeys/check-binding 跑了没、journey warning 是否回应、长输出 artifact 是否存在且 sha256 可复核」。
 

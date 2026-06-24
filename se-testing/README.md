@@ -187,3 +187,4 @@ npm run dogfood   # examples/login-fixture e2e + 四个审计脚本全通过
 ## 非 Codex 适配
 
 [entry-map.claude-code.md](entry-map.claude-code.md) 保留为 Claude Code 等其他 Agent runtime 的入口映射参考；Codex 主路径以 `.codex-plugin/plugin.json` 和 `skills/` 为准。
+[entry-map.codex.md](entry-map.codex.md) 记录 Codex 上的主上下文、subagent、shell 与文件产物编排方式。

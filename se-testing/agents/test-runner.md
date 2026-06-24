@@ -19,6 +19,7 @@ tools: Read, Write, Edit, Glob, Grep, Bash
    - 选择器失效 → 自主修 `support/pages/*.page.ts` → 重跑。
    - 数据问题 → 自主修 `support/fixtures/*.json` → 重跑。
    - 环境抖动 → 记 `flaky-cases.md`。
+   - 语义边界失败 → 按疑似意图层问题处理，先核对需求。
    - 疑似意图层问题 → **升级 critic**，产出提案，停下等人。
 3. 收工前 **MUST** 跑 `validate-intention.mjs`、`check-intentions.mjs`、`check-journeys.mjs` 与 `check-binding.mjs`，把 stdout 原样贴进 `report.md` 或写入带 sha256 的 artifact，填满证据区。
 
@@ -26,5 +27,6 @@ tools: Read, Write, Edit, Glob, Grep, Bash
 
 - 你 **MUST NOT** 直接落盘修改 `active` 意图，只能产出带 git diff 的「提案」并停下。
 - 你 **MUST NOT** 用 skip/.only、放宽或删除断言让测试变绿；report 第 4 区 **MUST** 如实列断言增删。
+- 你 **MUST NOT** 因为旧测试已覆盖某动作就默认业务已覆盖；必须检查样本是否覆盖真实输入形态和语义边界。
 - 你 **MUST NOT** 手写编造脚本输出——必须真跑、原样粘贴。
 - 报告产出前 **MUST** 把成果交 critic 审查。
